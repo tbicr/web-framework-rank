@@ -4,11 +4,11 @@ Wisdom of the crowd web framework rank.
 ## Rank and Score
 name | rank | score | pypistats downloads last month | pypi projects | stackoverflow questions | github stars | repo unique committers | repo changed lines last month | repo unique committers last month | repo last commit
 :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---:
-Django | 1 | 98 | 7516673 | 13818 | 267803 | 57813 | 2510 | 3738 | 40 | 2021-06-05
-Flask | 2 | 94 | 25569819 | 2377 | 45748 | 55640 | 739 | 3426 | 16 | 2021-06-02
+Django | 1 | 98 | 7516673 | 13818 | 267804 | 57813 | 2510 | 3738 | 40 | 2021-06-05
+Flask | 2 | 94 | 25569819 | 2377 | 45749 | 55640 | 739 | 3426 | 16 | 2021-06-02
 Tornado | 3 | 82 | 15618091 | 255 | 3659 | 20019 | 426 | 124 | 3 | 2021-05-30
 AIOHTTP | 4 | 81 | 24431713 | 190 | 1231 | 11264 | 608 | 258 | 5 | 2021-05-31
-Dash | 5 | 79 | 496299 | 557 | 2445 | 14635 | 93 | 52339 | 5 | 2021-06-03
+Dash | 5 | 79 | 496299 | 557 | 2445 | 14635 | 93 | 52337 | 5 | 2021-06-03
 Twisted | 6 | 77 | 1691793 | 62 | 3386 | 4271 | 262 | 12911 | 7 | 2021-06-01
 Werkzeug | 7 | 75 | 27700687 | 16 | 561 | 5740 | 428 | 3088 | 7 | 2021-06-01
 FastAPI | 8 | 74 | 2003129 | 147 | 1201 | 31813 | 230 | 3340 | 4 | 2021-05-26
