@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 from functools import lru_cache as cache, wraps
 from html.parser import HTMLParser
 from itertools import chain
-from typing import List, Dict, Any
+from typing import Dict, List, Union
 
 import git
 import requests
@@ -56,6 +56,16 @@ NAME = "name"
 COLLECTED_AT = "-collected_at"
 RANK = "rank"
 SCORE = "score"
+
+RANK_SUFFIX = "__rank"
+
+PROJECT_LANGUAGE = "language"
+PROJECT_REPO = "repo"
+PROJECT_GIT = "git"
+PROJECT_GITHUB_REPO = "github_repo"
+PROJECT_STACKOVERFLOW_TAG = "stackoverflow_tag"
+PROJECT_PYPISTAT_PROJECT = "pypistat_project"
+PROJECT_PYPI_PROJECT = "pypi_project"
 
 DATE_FIELDS = {
     REPO_FIRST_COMMIT_AT,
@@ -113,7 +123,7 @@ class Project:
     github_repo: str
     stackoverflow_tag: str
     pypistat_project: str
-    pypi_projects: str
+    pypi_project: str
 
 
 def logged(func):
@@ -154,7 +164,7 @@ def _commit_datetime(commit: git.Commit) -> datetime:
 
 @retry
 @logged
-def get_repository_stat(project: Project) -> Dict[str, Any]:
+def get_repository_stat(project: Project) -> Dict[str, Union[int, str]]:
     if project.git is None:
         return {
             REPO_LINES: 0,
@@ -174,7 +184,9 @@ def get_repository_stat(project: Project) -> Dict[str, Any]:
         all_commits = list(repo.iter_commits())
         all_committers = {commit.author.email for commit in all_commits}
         month_ago = datetime.utcnow() - timedelta(days=30)
-        last_month_commits = [commit for commit in all_commits if _commit_datetime(commit) > month_ago]
+        last_month_commits = [
+            commit for commit in all_commits if _commit_datetime(commit) > month_ago
+        ]
         last_month_commiters = {commit.author.email for commit in last_month_commits}
         last_month_lines = sum(commit.stats.total["lines"] for commit in last_month_commits)
 
@@ -208,7 +220,7 @@ def get_repository_stat(project: Project) -> Dict[str, Any]:
 
 @retry
 @logged
-def get_github_stat(project: Project) -> Dict[str, Any]:
+def get_github_stat(project: Project) -> Dict[str, Union[int, str]]:
     if project.github_repo is None:
         return {
             GITHUB_SIZE: 0,
@@ -234,7 +246,7 @@ def get_github_stat(project: Project) -> Dict[str, Any]:
 
 @retry
 @logged
-def get_stackoverflow_stat(project: Project) -> Dict[str, Any]:
+def get_stackoverflow_stat(project: Project) -> Dict[str, int]:
     if project.stackoverflow_tag is None:
         return {STACKOVERFLOW_QUESTIONS: 0}
     url = (
@@ -249,7 +261,7 @@ def get_stackoverflow_stat(project: Project) -> Dict[str, Any]:
 
 @retry
 @logged
-def get_pypistats_stat(project: Project) -> Dict[str, Any]:
+def get_pypistats_stat(project: Project) -> Dict[str, int]:
     url = f"https://pypistats.org/api/packages/{project.pypistat_project}/recent"
     response = session.get(url)
     response.raise_for_status()
@@ -279,9 +291,9 @@ def _get_pypi_index() -> List[str]:
 
 @retry
 @logged
-def get_pypi_projects_stat(project: Project) -> Dict[str, Any]:
+def get_pypi_projects_stat(project: Project) -> Dict[str, int]:
     index = _get_pypi_index()
-    project_name = project.name.lower()
+    project_name = project.pypi_project.lower()
     count = 0
     for name in index:
         if project_name in name:
@@ -290,15 +302,21 @@ def get_pypi_projects_stat(project: Project) -> Dict[str, Any]:
 
 
 @logged
-def get_rank_and_score(projects_data: List[Dict[str, Any]]) -> Dict[str, Dict[str, int]]:
-    fields = {field for data in projects_data for field in data.keys() if field.startswith("+")}
-    scores: Dict[str, float] = defaultdict(int)
+def get_rank_and_score(
+        projects_data: List[Dict[str, Union[int, str]]]
+) -> Dict[str, Dict[str, int]]:
+    fields = {
+        field for data in projects_data for field in data.keys()
+        if field.startswith("+") and not field.endswith(RANK_SUFFIX)
+    }
+    scores: Dict[str, float] = defaultdict(float)
+    field_scores = defaultdict(int)
     for field in fields:
         ordered_values = defaultdict(list)
         for data in projects_data:
             name = data[NAME]
             value = data[field]
-            if isinstance(value, str):
+            if field in DATE_FIELDS:
                 if value:
                     date_from = datetime.fromisoformat(value)
                     date_to = datetime.fromisoformat(data[COLLECTED_AT])
@@ -314,23 +332,98 @@ def get_rank_and_score(projects_data: List[Dict[str, Any]]) -> Dict[str, Dict[st
         for value, names in sorted(ordered_values.items(), reverse=True):
             for name in names:
                 scores[name] += current_field_score - sum(range(len(names))) / len(names)
+                field_scores[(name, field)] = current_field_score
             current_field_score -= len(names)
     results = {}
     for index, (name, score) in enumerate(sorted(scores.items(), key=lambda kv: -kv[1]), start=1):
-        results[name] = {RANK: index, SCORE: round(100 * score / len(fields) / len(projects_data))}
+        results[name] = {
+            RANK: index,
+            SCORE: round(100 * score / len(fields) / len(projects_data)),
+            RANK + RANK_SUFFIX: index,  # small hack for rank tooltip rendering
+            SCORE + RANK_SUFFIX: index,  # small hack for score tooltip rendering
+        }
+    for (name, field), score in field_scores.items():
+        results[name][field + RANK_SUFFIX] = len(projects_data) - score + 1
     return results
 
 
-def update_csv(result: List[Dict[str, Any]], content: str) -> str:
+def rank_and_update(projects_data: List[Dict[str, Union[int, str]]]):
+    rank_and_score = get_rank_and_score(projects_data)
+    for data in projects_data:
+        data.update(rank_and_score[data[NAME]])
+
+
+def get_csv_data(content: str) -> List[Dict[str, Union[int, str]]]:
+    handler = io.StringIO(content)
+    reader = csv.DictReader(handler, fieldnames=FIELDS, lineterminator="\n")
+    next(reader)
+    name_project_data_mapping = {}
+    for data in reader:
+        name_project_data_mapping[data[NAME]] = {
+            field: int(value) if field not in DATE_FIELDS | {NAME} else value
+            for field, value in data.items()
+        }
+    project_data = list(name_project_data_mapping.values())
+    rank_and_update(project_data)
+    return project_data
+
+
+def update_csv(result: List[Dict[str, Union[int, str]]], content: str) -> str:
     handler = io.StringIO(content)
     handler.read()
     writer = csv.DictWriter(handler, fieldnames=FIELDS, lineterminator="\n")
     for data in sorted(result, key=lambda data: data[RANK]):
-        writer.writerow(data)
+        writer.writerow({field: value for field, value in data.items() if field in FIELDS})
     return handler.getvalue()
 
 
-def update_readme(result: List[Dict[str, Any]], content: str) -> str:
+def readme_table_field(
+        field: str,
+        data: Dict[str, Union[int, str]],
+        prev_data: Dict[str, Union[int, str]],
+):
+    value = data[field]
+    prev_value = prev_data.get(field)
+    rank = data.get(field + RANK_SUFFIX)
+    prev_rank = prev_data.get(field + RANK_SUFFIX)
+
+    rank_change = " "
+    if prev_rank is None or rank < prev_rank:
+        rank_change = "▲"
+    elif rank > prev_rank:
+        rank_change = "▼"
+
+    if field == NAME:
+        repo = data[PROJECT_REPO]
+        tooltip = data[PROJECT_LANGUAGE]
+        return f"[{value}]({repo} \"{tooltip}\")"
+    elif field == RANK:
+        change = f"{prev_value - value:+}" if prev_value else "new"
+        tooltip = f"{rank_change} {change}"
+        return f"[{value}](# \"{tooltip}\")"
+    elif field == SCORE:
+        change = f"{value - prev_value:+}" if prev_value else f"{value:+}"
+        tooltip = f"{rank_change} {change}"
+        return f"[{value}](# \"{tooltip}\")"
+    else:
+        if field in DATE_FIELDS:
+            value = data[field].split("T")[0]
+            change = ""
+        else:
+            change = (
+                f"{round(100 * (value - prev_value) / prev_value, 2):+}%"
+                if prev_value else "+100%"
+            )
+        field_name = field.lstrip("+-").replace("_", " ")
+        tooltip = f"{rank_change} #{rank} in {field_name} {change}".rstrip()
+        return f"[{value}](# \"{tooltip}\")"
+
+
+def update_readme(
+        result: List[Dict[str, Union[int, str]]],
+        prev_result: List[Dict[str, Union[int, str]]],
+        content: str,
+) -> str:
     top_part = content.split("---", 1)[0].rsplit("\n", 2)[0]
     bottom_part = content.split("---", 1)[1].split("\n\n", 1)[1]
     header = " | ".join(
@@ -340,9 +433,10 @@ def update_readme(result: List[Dict[str, Any]], content: str) -> str:
     splitter = " | ".join(
         ":---" if field == NAME else "---:" for field in FIELDS
         if not field.startswith("-") and field in result[0])
+    name_prev_data_mapping = {data[NAME]: data for data in prev_result}
     table = [header, splitter] + [
         " | ".join(
-            data[field].split("T")[0] if field in DATE_FIELDS else str(data[field])
+            readme_table_field(field, data, name_prev_data_mapping.get(data[NAME], {}))
             for field in FIELDS
             if not field.startswith("-") and field in data
         )
@@ -353,28 +447,37 @@ def update_readme(result: List[Dict[str, Any]], content: str) -> str:
 
 @retry
 @logged
-def update_repo(result: List[Dict[str, Any]]):
+def update_repo(result: List[Dict[str, Union[int, str]]], dry_run: bool = False):
     g = Github(GITHUB_TOKEN)
     repo = g.get_repo(GITHUB_REPO)
+    author = InputGitAuthor(GITHUB_AUTHOR_NAME, GITHUB_AUTHOR_EMAIL)
     DATA = "data.csv"
     README = "README.md"
-    author = InputGitAuthor(GITHUB_AUTHOR_NAME, GITHUB_AUTHOR_EMAIL)
 
+    data_file = repo.get_contents(DATA, ref=GITHUB_BRANCH)
+    data_content = data_file.decoded_content.decode("utf-8")
+    prev_result = get_csv_data(data_content)
     readme_file = repo.get_contents(README, ref=GITHUB_BRANCH)
     readme_content = readme_file.decoded_content.decode("utf-8")
-    readme_content = update_readme(result, readme_content)
-    repo.update_file(
-        readme_file.path, "update readme", readme_content, readme_file.sha, branch=GITHUB_BRANCH, author=author)
+    readme_content = update_readme(result, prev_result, readme_content)
+    if not dry_run:
+        repo.update_file(
+            readme_file.path, "update readme", readme_content,
+            readme_file.sha, branch=GITHUB_BRANCH, author=author)
 
     data_file = repo.get_contents(DATA, ref=GITHUB_BRANCH)
     data_content = data_file.decoded_content.decode("utf-8")
     data_content = update_csv(result, data_content)
-    repo.update_file(
-        data_file.path, "update data", data_content, data_file.sha, branch=GITHUB_BRANCH, author=author)
+    if not dry_run:
+        repo.update_file(
+            data_file.path, "update data", data_content,
+            data_file.sha, branch=GITHUB_BRANCH, author=author)
 
 
 @logged
 def lambda_handler(event, context):
+    dry_run = event.get("dry_run", False)
+
     with open("projects.json") as handle:
         projects = json.load(handle)
     collected_at = datetime.utcnow().isoformat().split(".")[0].rstrip("Z")
@@ -382,8 +485,8 @@ def lambda_handler(event, context):
     for project_dict in projects:
         project = Project(**project_dict)
         data = {
-            NAME: project.name,
             COLLECTED_AT: collected_at,
+            **project_dict,
             **get_repository_stat(project),
             **get_github_stat(project),
             **get_stackoverflow_stat(project),
@@ -392,12 +495,10 @@ def lambda_handler(event, context):
         }
         projects_data.append(data)
 
-    rank_and_score = get_rank_and_score(projects_data)
-    for data in projects_data:
-        data.update(rank_and_score[data[NAME]])
+    rank_and_update(projects_data)
 
-    update_repo(projects_data)
+    update_repo(projects_data, dry_run)
 
 
 if __name__ == "__main__":
-    lambda_handler(None, None)
+    lambda_handler({}, None)

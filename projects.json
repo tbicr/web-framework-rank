@@ -7,7 +7,7 @@
     "github_repo": "aio-libs/aiohttp",
     "stackoverflow_tag": "aiohttp",
     "pypistat_project": "aiohttp",
-    "pypi_projects": "aiohttp"
+    "pypi_project": "aiohttp"
   },
   {
     "name": "Bottle",
@@ -17,7 +17,7 @@
     "github_repo": "bottlepy/bottle",
     "stackoverflow_tag": "bottle",
     "pypistat_project": "bottle",
-    "pypi_projects": "bottle"
+    "pypi_project": "bottle"
   },
   {
     "name": "CherryPy",
@@ -27,7 +27,7 @@
     "github_repo": "cherrypy/cherrypy",
     "stackoverflow_tag": "cherrypy",
     "pypistat_project": "cherrypy",
-    "pypi_projects": "cherrypy"
+    "pypi_project": "cherrypy"
   },
   {
     "name": "CubicWeb",
@@ -37,7 +37,7 @@
     "github_repo": null,
     "stackoverflow_tag": null,
     "pypistat_project": "cubicweb",
-    "pypi_projects": "cubicweb"
+    "pypi_project": "cubicweb"
   },
   {
     "name": "Dash",
@@ -47,7 +47,7 @@
     "github_repo": "plotly/dash",
     "stackoverflow_tag": "plotly-dash",
     "pypistat_project": "dash",
-    "pypi_projects": "dash"
+    "pypi_project": "dash"
   },
   {
     "name": "Django",
@@ -57,7 +57,7 @@
     "github_repo": "django/django",
     "stackoverflow_tag": "django",
     "pypistat_project": "django",
-    "pypi_projects": "django"
+    "pypi_project": "django"
   },
   {
     "name": "Emmett",
@@ -67,7 +67,7 @@
     "github_repo": "emmett-framework/emmett",
     "stackoverflow_tag": null,
     "pypistat_project": "emmett",
-    "pypi_projects": "emmett"
+    "pypi_project": "emmett"
   },
   {
     "name": "Falcon",
@@ -77,7 +77,7 @@
     "github_repo": "falconry/falcon",
     "stackoverflow_tag": "falconframework",
     "pypistat_project": "falcon",
-    "pypi_projects": "falcon"
+    "pypi_project": "falcon"
   },
   {
     "name": "FastAPI",
@@ -87,7 +87,7 @@
     "github_repo": "tiangolo/fastapi",
     "stackoverflow_tag": "fastapi",
     "pypistat_project": "fastapi",
-    "pypi_projects": "fastapi"
+    "pypi_project": "fastapi"
   },
   {
     "name": "Flask",
@@ -97,7 +97,7 @@
     "github_repo": "pallets/flask",
     "stackoverflow_tag": "flask",
     "pypistat_project": "flask",
-    "pypi_projects": "flask"
+    "pypi_project": "flask"
   },
   {
     "name": "Giotto",
@@ -107,7 +107,7 @@
     "github_repo": "priestc/giotto",
     "stackoverflow_tag": null,
     "pypistat_project": "giotto",
-    "pypi_projects": "giotto"
+    "pypi_project": "giotto"
   },
   {
     "name": "Grok",
@@ -117,7 +117,7 @@
     "github_repo": "zopefoundation/grok",
     "stackoverflow_tag": "grok",
     "pypistat_project": "grok",
-    "pypi_projects": "grok"
+    "pypi_project": "grok"
   },
   {
     "name": "Growler",
@@ -127,7 +127,7 @@
     "github_repo": "pyGrowler/Growler",
     "stackoverflow_tag": null,
     "pypistat_project": "growler",
-    "pypi_projects": "growler"
+    "pypi_project": "growler"
   },
   {
     "name": "hug",
@@ -137,7 +137,7 @@
     "github_repo": "hugapi/hug",
     "stackoverflow_tag": "hug",
     "pypistat_project": "hug",
-    "pypi_projects": "hug"
+    "pypi_project": "hug"
   },
   {
     "name": "Morepath",
@@ -147,7 +147,7 @@
     "github_repo": "morepath/morepath",
     "stackoverflow_tag": null,
     "pypistat_project": "morepath",
-    "pypi_projects": "morepath"
+    "pypi_project": "morepath"
   },
   {
     "name": "Pycnic",
@@ -157,7 +157,7 @@
     "github_repo": "nullism/pycnic",
     "stackoverflow_tag": null,
     "pypistat_project": "pycnic",
-    "pypi_projects": "pycnic"
+    "pypi_project": "pycnic"
   },
   {
     "name": "Pylons",
@@ -167,7 +167,7 @@
     "github_repo": "Pylons/pylons",
     "stackoverflow_tag": "pylons",
     "pypistat_project": "pylons",
-    "pypi_projects": "pylons"
+    "pypi_project": "pylons"
   },
   {
     "name": "Pyramid",
@@ -177,7 +177,7 @@
     "github_repo": "Pylons/pyramid",
     "stackoverflow_tag": "pyramid",
     "pypistat_project": "pyramid",
-    "pypi_projects": "pyramid"
+    "pypi_project": "pyramid"
   },
   {
     "name": "Quart",
@@ -187,7 +187,7 @@
     "github_repo": "pgjones/quart",
     "stackoverflow_tag": "quart",
     "pypistat_project": "quart",
-    "pypi_projects": "quart"
+    "pypi_project": "quart"
   },
   {
     "name": "Quixote",
@@ -197,7 +197,7 @@
     "github_repo": "nascheme/quixote",
     "stackoverflow_tag": null,
     "pypistat_project": "quixote",
-    "pypi_projects": "quixote"
+    "pypi_project": "quixote"
   },
   {
     "name": "Sanic",
@@ -207,7 +207,7 @@
     "github_repo": "sanic-org/sanic",
     "stackoverflow_tag": "sanic",
     "pypistat_project": "sanic",
-    "pypi_projects": "sanic"
+    "pypi_project": "sanic"
   },
   {
     "name": "Starlette",
@@ -217,7 +217,7 @@
     "github_repo": "encode/starlette",
     "stackoverflow_tag": "starlette",
     "pypistat_project": "starlette",
-    "pypi_projects": "starlette"
+    "pypi_project": "starlette"
   },
   {
     "name": "Tornado",
@@ -227,7 +227,7 @@
     "github_repo": "tornadoweb/tornado",
     "stackoverflow_tag": "tornado",
     "pypistat_project": "tornado",
-    "pypi_projects": "tornado"
+    "pypi_project": "tornado"
   },
   {
     "name": "TurboGears",
@@ -237,7 +237,7 @@
     "github_repo": "TurboGears/tg2",
     "stackoverflow_tag": "turbogears2",
     "pypistat_project": "turbogears2",
-    "pypi_projects": "turbogears"
+    "pypi_project": "turbogears"
   },
   {
     "name": "Twisted",
@@ -247,7 +247,7 @@
     "github_repo": "twisted/twisted",
     "stackoverflow_tag": "twisted",
     "pypistat_project": "twisted",
-    "pypi_projects": "twisted"
+    "pypi_project": "twisted"
   },
   {
     "name": "Vibora",
@@ -257,7 +257,7 @@
     "github_repo": "vibora-io/vibora",
     "stackoverflow_tag": null,
     "pypistat_project": "vibora",
-    "pypi_projects": "vibora"
+    "pypi_project": "vibora"
   },
   {
     "name": "web.py",
@@ -267,7 +267,7 @@
     "github_repo": "webpy/webpy",
     "stackoverflow_tag": "web.py",
     "pypistat_project": "web.py",
-    "pypi_projects": "web.py"
+    "pypi_project": "web.py"
   },
   {
     "name": "web2py",
@@ -277,7 +277,7 @@
     "github_repo": "web2py/web2py",
     "stackoverflow_tag": "web2py",
     "pypistat_project": "web2py",
-    "pypi_projects": "web2py"
+    "pypi_project": "web2py"
   },
   {
     "name": "Werkzeug",
@@ -287,7 +287,7 @@
     "github_repo": "pallets/werkzeug",
     "stackoverflow_tag": "werkzeug",
     "pypistat_project": "werkzeug",
-    "pypi_projects": "werkzeug"
+    "pypi_project": "werkzeug"
   },
   {
     "name": "Zope",
@@ -297,6 +297,6 @@
     "github_repo": "zopefoundation/Zope",
     "stackoverflow_tag": "zope",
     "pypistat_project": "zope",
-    "pypi_projects": "zope"
+    "pypi_project": "zope"
   }
 ]
