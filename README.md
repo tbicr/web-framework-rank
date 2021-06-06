@@ -43,8 +43,8 @@ Next fields used to calculate score and rank it:
 - unique committers last month
 - github stars
 - stackoverflow questions for appropriate framework tag
-- last month downloads
-- projects on pypi with framework name substring
+- last month package downloads from pypi
+- projects on pypi with framework name as substring
 
 ## Score Calculation Algorithm
 Score calculated as next way:
