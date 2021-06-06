@@ -1,14 +1,16 @@
 import csv
 import io
 import json
+import logging
 import os
 import tempfile
 import time
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from functools import cache
+from functools import lru_cache as cache, wraps
 from html.parser import HTMLParser
+from itertools import chain
 from typing import List, Dict, Any
 
 import git
@@ -96,6 +98,12 @@ FIELDS = [
 ]
 
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+session = requests.session()
+
+
 @dataclass(frozen=True)
 class Project:
     name: str
@@ -108,15 +116,32 @@ class Project:
     pypi_projects: str
 
 
-session = requests.session()
+def logged(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        projects = [param for param in chain(args, kwargs.values()) if isinstance(param, Project)]
+        project = projects[0] if len(projects) == 1 else None
+        start = time.time()
+        logger.info(
+            f"start {func.__name__}" +
+            (f" project: {project.name}" if project is not None else ""))
+        result = func(*args, **kwargs)
+        logger.info(
+            f"end {func.__name__}" +
+            (f" project: {project.name}" if project is not None else "") +
+            f" duration: {round(time.time() - start, 3)} sec")
+        return result
+    return wrapper
 
 
 def retry(func):
+    @wraps(func)
     def wrapper(*args, **kwargs):
         for timeout in [3, 10, 30, None]:
             try:
                 return func(*args, **kwargs)
             except Exception as err:
+                logger.exception(f"fail {func.__name__}")
                 if timeout is None:
                     raise err
                 time.sleep(timeout)
@@ -128,6 +153,7 @@ def _commit_datetime(commit: git.Commit) -> datetime:
 
 
 @retry
+@logged
 def get_repository_stat(project: Project) -> Dict[str, Any]:
     if project.git is None:
         return {
@@ -181,6 +207,7 @@ def get_repository_stat(project: Project) -> Dict[str, Any]:
 
 
 @retry
+@logged
 def get_github_stat(project: Project) -> Dict[str, Any]:
     if project.github_repo is None:
         return {
@@ -206,6 +233,7 @@ def get_github_stat(project: Project) -> Dict[str, Any]:
 
 
 @retry
+@logged
 def get_stackoverflow_stat(project: Project) -> Dict[str, Any]:
     if project.stackoverflow_tag is None:
         return {STACKOVERFLOW_QUESTIONS: 0}
@@ -220,6 +248,7 @@ def get_stackoverflow_stat(project: Project) -> Dict[str, Any]:
 
 
 @retry
+@logged
 def get_pypistats_stat(project: Project) -> Dict[str, Any]:
     url = f"https://pypistats.org/api/packages/{project.pypistat_project}/recent"
     response = session.get(url)
@@ -249,6 +278,7 @@ def _get_pypi_index() -> List[str]:
 
 
 @retry
+@logged
 def get_pypi_projects_stat(project: Project) -> Dict[str, Any]:
     index = _get_pypi_index()
     project_name = project.name.lower()
@@ -256,11 +286,10 @@ def get_pypi_projects_stat(project: Project) -> Dict[str, Any]:
     for name in index:
         if project_name in name:
             count += 1
-    return {
-        PYPI_PROJECTS: count,
-    }
+    return {PYPI_PROJECTS: count}
 
 
+@logged
 def get_rank_and_score(projects_data: List[Dict[str, Any]]) -> Dict[str, Dict[str, int]]:
     fields = {field for data in projects_data for field in data.keys() if field.startswith("+")}
     scores: Dict[str, float] = defaultdict(int)
@@ -295,7 +324,7 @@ def get_rank_and_score(projects_data: List[Dict[str, Any]]) -> Dict[str, Dict[st
 def update_csv(result: List[Dict[str, Any]], content: str) -> str:
     handler = io.StringIO(content)
     handler.read()
-    writer = csv.DictWriter(handler, fieldnames=FIELDS)
+    writer = csv.DictWriter(handler, fieldnames=FIELDS, lineterminator="\n")
     for data in sorted(result, key=lambda data: data[RANK]):
         writer.writerow(data)
     return handler.getvalue()
@@ -323,6 +352,7 @@ def update_readme(result: List[Dict[str, Any]], content: str) -> str:
 
 
 @retry
+@logged
 def update_repo(result: List[Dict[str, Any]]):
     g = Github(GITHUB_TOKEN)
     repo = g.get_repo(GITHUB_REPO)
@@ -343,10 +373,11 @@ def update_repo(result: List[Dict[str, Any]]):
         data_file.path, "update data", data_content, data_file.sha, branch=GITHUB_BRANCH, author=author)
 
 
+@logged
 def lambda_handler(event, context):
     with open("projects.json") as handle:
         projects = json.load(handle)
-    collected_at = datetime.utcnow().isoformat()
+    collected_at = datetime.utcnow().isoformat().split(".")[0].rstrip("Z")
     projects_data = []
     for project_dict in projects:
         project = Project(**project_dict)
