@@ -52,5 +52,5 @@ Score calculated as next way:
   - for each field get framework value
   - order values from smallest to heights
   - field score for framework is index in ordered list starting from 1 divided to count of frameworks
-- sum filed score of each field and divide to number of files
+- sum filed score of each field and divide to number of fields
 - increase score to 100 to get result form 0 to 100
