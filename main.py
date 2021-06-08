@@ -523,6 +523,8 @@ def readme_table_field(
     rank = data.get(field + RANK_SUFFIX)
     prev_rank = prev_data.get(field + RANK_SUFFIX)
 
+    change_period = "last week"
+
     rank_change = " "
     if prev_rank is None or rank < prev_rank:
         rank_change = "▲"
@@ -535,11 +537,11 @@ def readme_table_field(
         return f"[<sub>{value}</sub>]({repo} \"{tooltip}\")"
     elif field == RANK:
         change = f"{prev_value - value:+}" if prev_value else "new"
-        tooltip = f"{rank_change} {change}"
+        tooltip = f"{rank_change} {change} {change_period}"
         return f"[<sub>{value}</sub>](# \"{tooltip}\")"
     elif field == SCORE:
         change = f"{value - prev_value:+}" if prev_value else f"{value:+}"
-        tooltip = f"{rank_change} {change}"
+        tooltip = f"{rank_change} {change} {change_period}"
         return f"[<sub>{value}</sub>](# \"{tooltip}\")"
     else:
         if field in DATE_FIELDS:
@@ -547,8 +549,8 @@ def readme_table_field(
             change = ""
         else:
             change = (
-                f"{round(100 * (value - prev_value) / prev_value, 2):+}%"
-                if prev_value else "+100%"
+                f"{round(100 * (value - prev_value) / prev_value, 2):+}% {change_period}"
+                if prev_value else f"+100% {change_period}"
             )
         field_name = field.lstrip("+-").replace("_", " ")
         tooltip = f"{rank_change} #{rank} in {field_name} {change}".rstrip()
