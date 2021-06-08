@@ -1,6 +1,6 @@
 FROM public.ecr.aws/lambda/python:3.8
 
-COPY main.py projects.json requirements.txt /var/task/
+COPY main.py requirements.txt /var/task/
 
 RUN yum update -y \
  && yum install git -y \
