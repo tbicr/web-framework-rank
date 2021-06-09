@@ -1,3 +1,5 @@
 flake8
 mypy
 pytest
+types-pytz
+types-requests
