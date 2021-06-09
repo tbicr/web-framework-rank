@@ -14,7 +14,7 @@ from main import get_deep_dependencies
     ({"a": ["b"], "b": ["c; extra != \"x\""]}, {"b", "c"}),
     ({"a": ["b[x]"], "b": ["c; extra != \"y\""]}, {"b", "c"}),
     ({"a": ["b[x]"], "b": ["c; extra != \"x\""]}, {"b"}),
-    ({"a": ["b", "git+https://x.y"]}, {"b", None}),
+    ({"a": ["b", "git+https://x.y"]}, {"b"}),
     ({"a": ["a[x]", "b"]}, {"a", "b"}),
 ])
 def test_deep_dependency_resolver(dependencies, result):
