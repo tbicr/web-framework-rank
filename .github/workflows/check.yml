@@ -16,8 +16,8 @@ jobs:
       - name: install requirements
         run: pip install -r requirements.txt -r requirements-dev.txt
       - name: check flake8
-          run: flake8 --max-line-length=100 .
+        run: flake8 --max-line-length=100 .
       - name: check mypy
-          run: mypy --ignore-missing-imports .
+        run: mypy --ignore-missing-imports .
       - name: run tests
         run: pytest tests.py
