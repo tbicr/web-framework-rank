@@ -4,6 +4,7 @@ import io
 import json
 import logging
 import os
+import re
 import tempfile
 import time
 from collections import defaultdict, Counter
@@ -12,7 +13,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from html.parser import HTMLParser
 from itertools import chain
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Tuple, Optional, Set, Any
 
 import aiohttp
 import git
@@ -21,11 +22,11 @@ from github import Github, InputGitAuthor
 from pytz import UTC
 
 
-GITHUB_REPO = os.environ["GITHUB_REPO"]
-GITHUB_BRANCH = os.environ["GITHUB_BRANCH"]
-GITHUB_AUTHOR_NAME = os.environ["GITHUB_AUTHOR_NAME"]
-GITHUB_AUTHOR_EMAIL = os.environ["GITHUB_AUTHOR_EMAIL"]
-GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
+GITHUB_REPO = os.environ.get("GITHUB_REPO")
+GITHUB_BRANCH = os.environ.get("GITHUB_BRANCH")
+GITHUB_AUTHOR_NAME = os.environ.get("GITHUB_AUTHOR_NAME")
+GITHUB_AUTHOR_EMAIL = os.environ.get("GITHUB_AUTHOR_EMAIL")
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
 WEEK_DAYS = 7
 
@@ -52,10 +53,14 @@ STACKOVERFLOW_QUESTIONS = "+stackoverflow_questions"
 
 PYPI_PROJECT_MENTIONS = "-pypi_project_mentions"
 PYPI_USED_AS_MAIN_DEPENDENCY = "+pypi_used_as_main_dependency"
+PYPI_USED_AS_DEEP_DEPENDENCY = "-pypi_used_as_deep_dependency"
 PYPI_RELEASES = "-pypi_releases"
 PYPI_LAST_RELEASE_AT = "-pypi_last_release"
 
 PYPISTATS_DOWNLOADS_LAST_MONTH = "+pypistats_downloads_last_month"
+
+USES_FRAMEWORKS = "uses"
+USED_IN_FRAMEWORKS = "used_in"
 
 NAME = "name"
 COLLECTED_AT = "-collected_at"
@@ -77,6 +82,7 @@ DATE_FIELDS = {
     REPO_LAST_COMMIT_AT,
     GITHUB_CREATED_AT,
     GITHUB_UPDATED_AT,
+    PYPI_LAST_RELEASE_AT,
     COLLECTED_AT,
 }
 
@@ -90,6 +96,7 @@ FIELDS = [
 
     PYPI_PROJECT_MENTIONS,
     PYPI_USED_AS_MAIN_DEPENDENCY,
+    PYPI_USED_AS_DEEP_DEPENDENCY,
     PYPI_RELEASES,
     PYPI_LAST_RELEASE_AT,
 
@@ -140,22 +147,31 @@ class GithubWrapper:
     PYPI_CACHE = "pypi_cache.json"
     PROJECTS = "projects.json"
 
-    def __init__(self, dry_run=False):
+    def __init__(self, dry_run=False, use_local=False):
         self.dry_run = dry_run
+        self.use_local = use_local
         g = Github(GITHUB_TOKEN)
         self.repo = g.get_repo(GITHUB_REPO)
         self.author = InputGitAuthor(GITHUB_AUTHOR_NAME, GITHUB_AUTHOR_EMAIL)
         self._state = {}
 
     def _fetch_content(self, file_name):
-        self._state[file_name] = self.repo.get_contents(file_name, ref=GITHUB_BRANCH)
-        return self._state[file_name].decoded_content.decode("utf-8")
+        if self.use_local:
+            with open(file_name) as handler:
+                return handler.read()
+        else:
+            self._state[file_name] = self.repo.get_contents(file_name, ref=GITHUB_BRANCH)
+            return self._state[file_name].decoded_content.decode("utf-8")
 
     def _update_content(self, file_name, commit_message, content):
         if not self.dry_run:
-            self.repo.update_file(
-                self._state[file_name].path, commit_message, content,
-                self._state[file_name].sha, branch=GITHUB_BRANCH, author=self.author)
+            if self.use_local:
+                with open(file_name, "w") as handler:
+                    handler.write(content)
+            else:
+                self.repo.update_file(
+                    self._state[file_name].path, commit_message, content,
+                    self._state[file_name].sha, branch=GITHUB_BRANCH, author=self.author)
         self._state = {}
 
     @property
@@ -352,13 +368,68 @@ def get_pypi_index() -> List[str]:
 
 
 @retry
-def _get_pypi_package_meta(package):
+def _get_pypi_package_meta(package: str) -> Dict:
     response = session.get(f"https://pypi.org/pypi/{package}/json")
     response.raise_for_status()
     return response.json()
 
 
-async def _get_pypi_package_dependencies(session: aiohttp.ClientSession, package: str):
+extra_pattern = re.compile(r"^extra *(==|!=) *['\"]([0-9a-z-_. ]+)['\"]$")
+split_pattern = re.compile(r"[ <!=~>;]")
+dependency_pattern = re.compile(
+    r"^([0-9a-z-_.]+)(\[([0-9a-z-_.,]+)\])?(; extra (==|!=) \"([0-9a-z-_. ]+)\")?$"
+)
+
+
+def _prettify_dependency(dependency: str) -> str:
+    """
+    keep only `dependency[option1,...]; extra == "package_option"` dependency pattern
+    versions ignored
+    next parameters ignored:
+    - os_name, sys_platform, platform_system, platform_release, platform_machine
+    - implementation_name, platform_python_implementation
+    - python_version, python_full_version
+    """
+    dependency = dependency.replace("(", "").replace(")", "").lower()
+    package = split_pattern.split(dependency, maxsplit=1)[0]
+    extra = ""
+    parts = [
+        p3.strip()
+        for p1 in dependency.split(";")
+        for p2 in p1.split(" and ")
+        for p3 in p2.split(" or ")
+    ]
+    for part in parts:
+        match = extra_pattern.match(part)
+        if match is not None:
+            eq, name = match.groups()
+            extra = f"; extra {eq} \"{name}\""
+
+    return package + extra
+
+
+def _parse_dependency(
+        dependency: str
+) -> Tuple[Optional[str], List[str], Optional[bool], Optional[str]]:
+    if dependency.startswith("git+https://"):
+        return None, [], None, None
+    match = dependency_pattern.match(dependency)
+    if match is None:
+        logger.warning(f"dependency in wrong format {dependency}")
+        return None, [], None, None
+    dependency, _, options, _, eq, extra = match.groups()
+    return (
+        dependency,
+        options.split(",") if options is not None else [],
+        eq == "==" if eq is not None else None,
+        extra,
+    )
+
+
+async def _get_pypi_package_dependencies(
+        session: aiohttp.ClientSession,
+        package: str,
+) -> Tuple[str, List[str]]:
     async with session.get(f"https://pypi.org/pypi/{package}/json") as response:
         if response.status == 404:
             return package.lower(), []
@@ -367,12 +438,13 @@ async def _get_pypi_package_dependencies(session: aiohttp.ClientSession, package
         if meta is None:
             return package.lower(), []
         return package.lower(), sorted({
-            dependency.split()[0].split("[")[0].lower()
-            for dependency in meta["info"]["requires_dist"] or []
+            _prettify_dependency(dependency) for dependency in meta["info"]["requires_dist"] or []
         } - {package})
 
 
-async def _concurrent_pypi_dependencies_fetching(packages):
+async def _concurrent_pypi_dependencies_fetching(
+        packages: List[str],
+) -> List[Tuple[str, List[str]]]:
     async with aiohttp.ClientSession() as session:
         tasks = [_get_pypi_package_dependencies(session, package) for package in packages]
         results = await asyncio.gather(*tasks)
@@ -382,7 +454,8 @@ async def _concurrent_pypi_dependencies_fetching(packages):
 @retry
 @logged
 def get_and_update_dependencies(
-        pypi_index: List[str], repo_github: GithubWrapper
+        pypi_index: List[str],
+        repo_github: GithubWrapper,
 ) -> Dict[str, List[str]]:
     data = json.loads(repo_github.pypi_cache)
     uncached = list({package for package in pypi_index if package.lower() not in data})
@@ -392,18 +465,56 @@ def get_and_update_dependencies(
         chunk = uncached[i:i + chunk_size]
         for package, dependencies in asyncio.run(_concurrent_pypi_dependencies_fetching(chunk)):
             data[package] = dependencies
-        logger.info(f"pypi packages chunk downloaded: {i + chunk_size} off {len(uncached)}")
+        logger.info(f"pypi packages chunk downloaded: {i + len(chunk)} off {len(uncached)}")
     repo_github.pypi_cache = (json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False).
                               replace("[\n    ", "[").replace("\n   ", "").replace("\n  ]", "]"))
     return data
 
 
+def get_deep_dependencies(
+        data: Dict[str, List[str]],
+        package: str,
+        extra_options: List[str] = None,
+        cache: Set[str] = None,
+) -> Set[str]:
+    all_extras = False
+    extra_options = extra_options or []
+    if cache is None:
+        all_extras = True
+        extra_options = []
+        cache = set()
+    for dependency in data.get(package, []):
+        parsed_dependency, options, eq, extra = _parse_dependency(dependency)
+        if parsed_dependency is None:
+            continue
+        if parsed_dependency in cache:
+            continue
+        if not all_extras:
+            if extra is not None and eq is True and extra not in extra_options:
+                continue
+            if eq is False and extra in extra_options:
+                continue
+        cache.add(parsed_dependency)
+        get_deep_dependencies(data, parsed_dependency, options, cache)
+    return cache
+
+
 @logged
-def get_main_dependencies_count(data: Dict[str, List[str]]) -> Dict[str, int]:
+def get_deep_dependencies_count(data: Dict[str, List[str]]) -> Dict[str, int]:
     return Counter(
         dependency
+        for package in data
+        for dependency in get_deep_dependencies(data, package) - {package}
+    )
+
+
+@logged
+def get_main_dependencies_count(data: Dict[str, List[str]]) -> Dict[Optional[str], int]:
+    return Counter(
+        _parse_dependency(dependency)[0]
         for package, dependencies in data.items()
         for dependency in dependencies
+        if _parse_dependency(dependency)[0] != package
     )
 
 
@@ -413,6 +524,7 @@ def get_pypi_projects_stat(
         project: Project,
         pypi_index: List[str],
         main_dependencies_count: Dict[str, int],
+        deep_dependencies_count: Dict[str, int],
 ) -> Dict[str, Union[int, str]]:
     project_name = project.pypi_project.lower()
 
@@ -432,14 +544,43 @@ def get_pypi_projects_stat(
     return {
         PYPI_PROJECT_MENTIONS: mentions_count,
         PYPI_USED_AS_MAIN_DEPENDENCY: main_dependencies_count[project_name],
+        PYPI_USED_AS_DEEP_DEPENDENCY: deep_dependencies_count[project_name],
         PYPI_RELEASES: releases_count,
         PYPI_LAST_RELEASE_AT: last_release_at,
     }
 
 
+def get_usages(
+        projects: List[Project],
+        dependencies: Dict[str, List[str]],
+) -> Dict[str, List[str]]:
+    project_pypi_name_mapping = {project.pypi_project: project.name for project in projects}
+    uses = defaultdict(list)
+    for project in projects:
+        project_dependencies = (
+            get_deep_dependencies(dependencies, project.pypi_project, [], set()) -
+            {project.pypi_project}
+        )
+        for dependency in project_dependencies:
+            if dependency in project_pypi_name_mapping:
+                uses[project.name].append(project_pypi_name_mapping[dependency])
+    return uses
+
+
+def get_uses_and_used_by(project: Project, usages: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    uses = sorted(usages[project.name])
+    used_by = sorted({
+        subproject
+        for subproject, dependencies in usages.items()
+        for dependency in dependencies
+        if dependency == project.name
+    })
+    return {USES_FRAMEWORKS: uses, USED_IN_FRAMEWORKS: used_by}
+
+
 @logged
 def get_rank_and_score(
-        projects_data: List[Dict[str, Union[int, str]]]
+        projects_data: List[Dict[str, Any]]
 ) -> Dict[str, Dict[str, int]]:
     fields = {
         field for data in projects_data for field in data.keys()
@@ -483,13 +624,13 @@ def get_rank_and_score(
     return results
 
 
-def rank_and_update(projects_data: List[Dict[str, Union[int, str]]]):
+def rank_and_update(projects_data: List[Dict[str, Any]]):
     rank_and_score = get_rank_and_score(projects_data)
     for data in projects_data:
         data.update(rank_and_score[data[NAME]])
 
 
-def get_csv_data(content: str) -> List[Dict[str, Union[int, str]]]:
+def get_csv_data(content: str) -> List[Dict[str, Any]]:
     handler = io.StringIO(content)
     reader = csv.DictReader(handler, fieldnames=FIELDS, lineterminator="\n")
     next(reader)
@@ -504,7 +645,7 @@ def get_csv_data(content: str) -> List[Dict[str, Union[int, str]]]:
     return project_data
 
 
-def update_csv(result: List[Dict[str, Union[int, str]]], content: str) -> str:
+def update_csv(result: List[Dict[str, Any]], content: str) -> str:
     handler = io.StringIO(content)
     handler.read()
     writer = csv.DictWriter(handler, fieldnames=FIELDS, lineterminator="\n")
@@ -515,8 +656,8 @@ def update_csv(result: List[Dict[str, Union[int, str]]], content: str) -> str:
 
 def readme_table_field(
         field: str,
-        data: Dict[str, Union[int, str]],
-        prev_data: Dict[str, Union[int, str]],
+        data: Dict[str, Any],
+        prev_data: Dict[str, Any],
 ):
     value = data[field]
     prev_value = prev_data.get(field)
@@ -533,7 +674,13 @@ def readme_table_field(
 
     if field == NAME:
         repo = data[PROJECT_REPO]
-        tooltip = data[PROJECT_LANGUAGE]
+        tooltip = "; ".join(f"{name}: {value}" for name, value in {
+            "first commit": (
+                data[REPO_FIRST_COMMIT_AT].split("T")[0] if data[REPO_FIRST_COMMIT_AT] else None
+            ),
+            "uses": " and ".join(data[USES_FRAMEWORKS]),
+            "used by": " and ".join(data[USED_IN_FRAMEWORKS]),
+        }.items() if value)
         return f"[<sub>{value}</sub>]({repo} \"{tooltip}\")"
     elif field == RANK:
         change = f"{prev_value - value:+}" if prev_value else "new"
@@ -558,8 +705,8 @@ def readme_table_field(
 
 
 def update_readme(
-        result: List[Dict[str, Union[int, str]]],
-        prev_result: List[Dict[str, Union[int, str]]],
+        result: List[Dict[str, Any]],
+        prev_result: List[Dict[str, Any]],
         content: str,
 ) -> str:
     top_part = content.split("---", 1)[0].rsplit("\n", 2)[0]
@@ -585,7 +732,7 @@ def update_readme(
 
 @retry
 @logged
-def update_repo(result: List[Dict[str, Union[int, str]]], repo_github: GithubWrapper):
+def update_repo(result: List[Dict[str, Any]], repo_github: GithubWrapper):
     prev_result = get_csv_data(repo_github.data)
     repo_github.readme = update_readme(result, prev_result, repo_github.readme)
     repo_github.data = update_csv(result, repo_github.data)
@@ -594,11 +741,14 @@ def update_repo(result: List[Dict[str, Union[int, str]]], repo_github: GithubWra
 @logged
 def lambda_handler(event, context):
     dry_run = event.get("dry_run", False)
-    repo_github = GithubWrapper(dry_run)
+    use_local = event.get("use_local", False)
+    repo_github = GithubWrapper(dry_run, use_local)
     projects = json.loads(repo_github.projects)
     pypi_index = get_pypi_index()
     dependencies = get_and_update_dependencies(pypi_index, repo_github)
     main_dependencies_count = get_main_dependencies_count(dependencies)
+    deep_dependencies_count = get_deep_dependencies_count(dependencies)
+    uses = get_usages([Project(**project_dict) for project_dict in projects], dependencies)
     collected_at = datetime.utcnow().isoformat().split(".")[0].rstrip("Z")
     projects_data = []
     for project_dict in projects:
@@ -610,7 +760,10 @@ def lambda_handler(event, context):
             **get_github_stat(project),
             **get_stackoverflow_stat(project),
             **get_pypistats_stat(project),
-            **get_pypi_projects_stat(project, pypi_index, main_dependencies_count),
+            **get_pypi_projects_stat(
+                project, pypi_index, main_dependencies_count, deep_dependencies_count,
+            ),
+            **get_uses_and_used_by(project, uses),
         }
         projects_data.append(data)
 

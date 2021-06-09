@@ -1,0 +1,23 @@
+name: Check
+
+on: push
+
+jobs:
+  black-check:
+    name: run checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+      - name: set up python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: install requirements
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: check flake8
+          run: flake8 --max-line-length=100 .
+      - name: check mypy
+          run: mypy --ignore-missing-imports .
+      - name: run tests
+        run: pytest tests.py
