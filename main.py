@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import csv
 import io
 import json
@@ -160,8 +161,10 @@ class GithubWrapper:
             with open(file_name) as handler:
                 return handler.read()
         else:
-            self._state[file_name] = self.repo.get_contents(file_name, ref=GITHUB_BRANCH)
-            return self._state[file_name].decoded_content.decode("utf-8")
+            tree = self.repo.get_git_tree(GITHUB_BRANCH).tree
+            sha = [node.sha for node in tree if node.path == file_name][0]
+            self._state[file_name] = self.repo.get_git_blob(sha)
+            return base64.b64decode(self._state[file_name].content).decode("utf-8")
 
     def _update_content(self, file_name, commit_message, content):
         if not self.dry_run:
@@ -170,7 +173,7 @@ class GithubWrapper:
                     handler.write(content)
             else:
                 self.repo.update_file(
-                    self._state[file_name].path, commit_message, content,
+                    file_name, commit_message, content,
                     self._state[file_name].sha, branch=GITHUB_BRANCH, author=self.author)
         self._state = {}
 

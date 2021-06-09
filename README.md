@@ -37,14 +37,14 @@ Wisdom of the crowd web framework rank.
 
 ## Fields
 Next fields used to calculate score and rank it:
+- last month package downloads from pypi
+- projects on pypi with framework as main dependency
+- stackoverflow questions for appropriate framework tag
+- github stars
 - unique committers
-- last update
 - lines updated last month
 - unique committers last month
-- github stars
-- stackoverflow questions for appropriate framework tag
-- last month package downloads from pypi
-- projects on pypi with framework name as substring
+- last update in master (weeks from last update)
 
 ## Score Calculation Algorithm
 Score calculated as next way:
