@@ -54,7 +54,9 @@ STACKOVERFLOW_QUESTIONS = "+stackoverflow_questions"
 
 PYPI_PROJECT_MENTIONS = "-pypi_project_mentions"
 PYPI_USED_AS_MAIN_DEPENDENCY = "+pypi_used_as_main_dependency"
+PYPI_USED_AS_MAIN_DEPENDENCY_WITH_EXTRA = "-pypi_used_as_main_dependency_with_extra"
 PYPI_USED_AS_DEEP_DEPENDENCY = "-pypi_used_as_deep_dependency"
+PYPI_USED_AS_DEEP_DEPENDENCY_WITH_EXTRA = "-pypi_used_as_deep_dependency_with_extra"
 PYPI_RELEASES = "-pypi_releases"
 PYPI_LAST_RELEASE_AT = "-pypi_last_release"
 
@@ -97,7 +99,9 @@ FIELDS = [
 
     PYPI_PROJECT_MENTIONS,
     PYPI_USED_AS_MAIN_DEPENDENCY,
+    PYPI_USED_AS_MAIN_DEPENDENCY_WITH_EXTRA,
     PYPI_USED_AS_DEEP_DEPENDENCY,
+    PYPI_USED_AS_DEEP_DEPENDENCY_WITH_EXTRA,
     PYPI_RELEASES,
     PYPI_LAST_RELEASE_AT,
 
@@ -507,12 +511,32 @@ def get_deep_dependencies_count(data: Dict[str, List[str]]) -> Dict[str, int]:
     return Counter(
         dependency
         for package in data
+        for dependency in get_deep_dependencies(data, package, [], set()) - {package}
+    )
+
+
+@logged
+def get_deep_dependencies_count_with_extra(data: Dict[str, List[str]]) -> Dict[str, int]:
+    return Counter(
+        dependency
+        for package in data
         for dependency in get_deep_dependencies(data, package) - {package}
     )
 
 
 @logged
 def get_main_dependencies_count(data: Dict[str, List[str]]) -> Dict[Optional[str], int]:
+    return Counter(
+        _parse_dependency(dependency)[0]
+        for package, dependencies in data.items()
+        for dependency in dependencies
+        if _parse_dependency(dependency)[0] != package
+        and _parse_dependency(dependency)[3] is None
+    )
+
+
+@logged
+def get_main_dependencies_count_with_extra(data: Dict[str, List[str]]) -> Dict[Optional[str], int]:
     return Counter(
         _parse_dependency(dependency)[0]
         for package, dependencies in data.items()
@@ -527,7 +551,9 @@ def get_pypi_projects_stat(
         project: Project,
         pypi_index: List[str],
         main_dependencies_count: Dict[str, int],
+        main_dependencies_count_with_extra: Dict[str, int],
         deep_dependencies_count: Dict[str, int],
+        deep_dependencies_count_with_extra: Dict[str, int],
 ) -> Dict[str, Union[int, str]]:
     project_name = project.pypi_project.lower()
 
@@ -547,7 +573,9 @@ def get_pypi_projects_stat(
     return {
         PYPI_PROJECT_MENTIONS: mentions_count,
         PYPI_USED_AS_MAIN_DEPENDENCY: main_dependencies_count[project_name],
+        PYPI_USED_AS_MAIN_DEPENDENCY_WITH_EXTRA: main_dependencies_count_with_extra[project_name],
         PYPI_USED_AS_DEEP_DEPENDENCY: deep_dependencies_count[project_name],
+        PYPI_USED_AS_DEEP_DEPENDENCY_WITH_EXTRA: deep_dependencies_count_with_extra[project_name],
         PYPI_RELEASES: releases_count,
         PYPI_LAST_RELEASE_AT: last_release_at,
     }
@@ -695,8 +723,14 @@ def readme_table_field(
         return f"[<sub>{value}</sub>](# \"{tooltip}\")"
     else:
         if field in DATE_FIELDS:
+            if value:
+                date_from = datetime.fromisoformat(value)
+                date_to = datetime.fromisoformat(data[COLLECTED_AT])
+                weeks = (date_to - date_from).days // WEEK_DAYS
+                change = f"{weeks + 1} weeks ago" if weeks else "1 week ago"
+            else:
+                change = ""
             value = data[field].split("T")[0]
-            change = ""
         else:
             change = (
                 f"{round(100 * (value - prev_value) / prev_value, 2):+}% {change_period}"
@@ -750,7 +784,9 @@ def lambda_handler(event, context):
     pypi_index = get_pypi_index()
     dependencies = get_and_update_dependencies(pypi_index, repo_github)
     main_dependencies_count = get_main_dependencies_count(dependencies)
+    main_dependencies_count_with_extra = get_main_dependencies_count_with_extra(dependencies)
     deep_dependencies_count = get_deep_dependencies_count(dependencies)
+    deep_dependencies_count_with_extra = get_deep_dependencies_count_with_extra(dependencies)
     uses = get_usages([Project(**project_dict) for project_dict in projects], dependencies)
     collected_at = datetime.utcnow().isoformat().split(".")[0].rstrip("Z")
     projects_data = []
@@ -764,7 +800,12 @@ def lambda_handler(event, context):
             **get_stackoverflow_stat(project),
             **get_pypistats_stat(project),
             **get_pypi_projects_stat(
-                project, pypi_index, main_dependencies_count, deep_dependencies_count,
+                project,
+                pypi_index,
+                main_dependencies_count,
+                main_dependencies_count_with_extra,
+                deep_dependencies_count,
+                deep_dependencies_count_with_extra,
             ),
             **get_uses_and_used_by(project, uses),
         }

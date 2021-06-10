@@ -35,7 +35,16 @@ Wisdom of the crowd web framework rank.
 [<sub>Growler</sub>](https://github.com/pyGrowler/Growler "first commit: 2014-08-17") | [<sub>29</sub>](# "▲ new last week") | [<sub>17</sub>](# "▲ +17 last week") | [<sub>36</sub>](# "▲ #30 in pypistats downloads last month +100% last week") | [<sub>0</sub>](# "▲ #24 in pypi used as main dependency +100% last week") | [<sub>0</sub>](# "▲ #23 in stackoverflow questions +100% last week") | [<sub>684</sub>](# "▲ #21 in github stars +100% last week") | [<sub>6</sub>](# "▲ #27 in repo unique committers +100% last week") | [<sub>0</sub>](# "▲ #19 in repo changed lines last month +100% last week") | [<sub>0</sub>](# "▲ #19 in repo unique committers last month +100% last week") | [<sub>2020-03-08</sub>](# "▲ #26 in repo last commit")
 [<sub>Giotto</sub>](https://github.com/priestc/giotto "first commit: 2012-02-26") | [<sub>30</sub>](# "▲ new last week") | [<sub>12</sub>](# "▲ +12 last week") | [<sub>74</sub>](# "▲ #29 in pypistats downloads last month +100% last week") | [<sub>0</sub>](# "▲ #24 in pypi used as main dependency +100% last week") | [<sub>0</sub>](# "▲ #23 in stackoverflow questions +100% last week") | [<sub>54</sub>](# "▲ #28 in github stars +100% last week") | [<sub>3</sub>](# "▲ #29 in repo unique committers +100% last week") | [<sub>0</sub>](# "▲ #19 in repo changed lines last month +100% last week") | [<sub>0</sub>](# "▲ #19 in repo unique committers last month +100% last week") | [<sub>2013-10-07</sub>](# "▲ #29 in repo last commit")
 
-## Fields
+## Score Calculation Algorithm
+Score calculated as next way:
+- calculate field score for framework for each field
+  - for each field get framework value
+  - order values from smallest to heights
+  - field score for framework is index in ordered list starting from 1 divided to count of frameworks
+- sum filed score of each field and divide to number of fields
+- increase score to 100 to get result form 0 to 100
+
+## Fields Used for Score Calculation
 Next fields used to calculate score and rank it:
 - last month package downloads from pypi
 - projects on pypi with framework as main dependency
@@ -46,11 +55,35 @@ Next fields used to calculate score and rank it:
 - unique committers last month
 - last update in master (weeks from last update)
 
-## Score Calculation Algorithm
-Score calculated as next way:
-- calculate field score for framework for each field
-  - for each field get framework value
-  - order values from smallest to heights
-  - field score for framework is index in ordered list starting from 1 divided to count of frameworks
-- sum filed score of each field and divide to number of fields
-- increase score to 100 to get result form 0 to 100
+## All Data Fields
+[data.csv](data.csv) contain a wide range of data for frameworks collected weekly.
+There are field presented in it: 
+
+- name
+- rank
+- score
+- pypistats_downloads_last_month
+- pypi_project_mentions
+- pypi_used_as_main_dependency
+- pypi_used_as_main_dependency_with_extra
+- pypi_used_as_deep_dependency
+- pypi_used_as_deep_dependency_with_extra
+- pypi_releases
+- pypi_last_release_at
+- stackoverflow_questions
+- github_stars
+- github_forks
+- github_watches
+- github_size
+- github_created_at
+- github_updated_at
+- repo_lines
+- repo_size
+- repo_commits
+- repo_committers
+- repo_changed_lines_last_month
+- repo_commits_last_month
+- repo_committers_last_month
+- repo_first_commit_at
+- repo_last_commit_at
+- collected_at
