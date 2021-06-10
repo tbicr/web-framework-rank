@@ -56,8 +56,8 @@ Next fields used to calculate score and rank it:
 - last update in master (weeks from last update)
 
 ## All Data Fields
-[data.csv](data.csv) contain a wide range of data for frameworks collected weekly.
-There are field presented in it: 
+[data.csv](data.csv) contains wide range of metrics about frameworks collected weekly.
+There are next fields presented in it: 
 
 - name
 - rank
