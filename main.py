@@ -50,6 +50,9 @@ GITHUB_SIZE = "-github_size"
 GITHUB_CREATED_AT = "-github_first_commit"
 GITHUB_UPDATED_AT = "-github_last_commit"
 
+GITHUB_TOPICS_ALL = "+github_topics_all"
+GITHUB_TOPICS_LANGUAGE = "+github_topics_language"
+
 STACKOVERFLOW_QUESTIONS = "+stackoverflow_questions"
 
 PYPI_PROJECT_MENTIONS = "-pypi_project_mentions"
@@ -76,6 +79,7 @@ PROJECT_LANGUAGE = "language"
 PROJECT_REPO = "repo"
 PROJECT_GIT = "git"
 PROJECT_GITHUB_REPO = "github_repo"
+PROJECT_GITHUB_TOPIC = "github_topic"
 PROJECT_STACKOVERFLOW_TAG = "stackoverflow_tag"
 PROJECT_PYPISTAT_PROJECT = "pypistat_project"
 PROJECT_PYPI_PROJECT = "pypi_project"
@@ -106,6 +110,9 @@ FIELDS = [
     PYPI_LAST_RELEASE_AT,
 
     STACKOVERFLOW_QUESTIONS,
+
+    GITHUB_TOPICS_ALL,
+    GITHUB_TOPICS_LANGUAGE,
 
     GITHUB_STARS,
     GITHUB_FORKS,
@@ -141,6 +148,7 @@ class Project:
     repo: str
     git: str
     github_repo: str
+    github_topic: str
     stackoverflow_tag: str
     pypistat_project: str
     pypi_project: str
@@ -326,6 +334,37 @@ def get_github_stat(project: Project) -> Dict[str, Union[int, str]]:
         GITHUB_CREATED_AT: data["created_at"].rstrip("Z"),
         GITHUB_UPDATED_AT: data["updated_at"].rstrip("Z"),
     }
+
+
+TOPIC_PROJECTS_COUNT_PATTERN = re.compile(r"([0-9,]+) public repositories")
+
+
+@logged
+def get_github_topics(project: Project) -> Dict[str, int]:
+    """
+    There are no API for getting topic, so this metric not robust there
+    """
+    count_all = 0
+    count_language = 0
+    if project.github_topic is not None:
+        try:
+            url = f"https://github.com/topics/{project.github_topic}"
+            response = session.get(url)
+            response.raise_for_status()
+            match = TOPIC_PROJECTS_COUNT_PATTERN.search(response.text)
+            if match is not None:
+                count_all = int(match.groups()[0].replace(',', ''))
+
+            url = f"https://github.com/topics/{project.github_topic}?l={project.language}"
+            response = session.get(url)
+            response.raise_for_status()
+            match = TOPIC_PROJECTS_COUNT_PATTERN.search(response.text)
+            if match is not None:
+                count_language = int(match.groups()[0].replace(',', ''))
+        except Exception:
+            pass
+
+    return {GITHUB_TOPICS_ALL: count_all, GITHUB_TOPICS_LANGUAGE: count_language}
 
 
 @retry
@@ -663,13 +702,16 @@ def rank_and_update(projects_data: List[Dict[str, Any]]):
 
 def get_csv_data(content: str) -> List[Dict[str, Any]]:
     handler = io.StringIO(content)
-    reader = csv.DictReader(handler, fieldnames=FIELDS, lineterminator="\n")
-    next(reader)
+    reader = csv.DictReader(handler, lineterminator="\n")
     name_project_data_mapping = {}
     for data in reader:
         name_project_data_mapping[data[NAME]] = {
-            field: int(value) if field not in DATE_FIELDS | {NAME} else value
-            for field, value in data.items()
+            field: (
+                int(data.get(field.strip("+-"), "0"))
+                if field not in DATE_FIELDS | {NAME} else
+                data.get(field.strip("+-"), "")
+            )
+            for field in FIELDS
         }
     project_data = list(name_project_data_mapping.values())
     rank_and_update(project_data)
@@ -797,6 +839,7 @@ def lambda_handler(event, context):
             **project_dict,
             **get_repository_stat(project),
             **get_github_stat(project),
+            **get_github_topics(project),
             **get_stackoverflow_stat(project),
             **get_pypistats_stat(project),
             **get_pypi_projects_stat(

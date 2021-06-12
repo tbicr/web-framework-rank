@@ -5,6 +5,7 @@
     "repo": "https://github.com/aio-libs/aiohttp",
     "git": "https://github.com/aio-libs/aiohttp.git",
     "github_repo": "aio-libs/aiohttp",
+    "github_topic": "aiohttp",
     "stackoverflow_tag": "aiohttp",
     "pypistat_project": "aiohttp",
     "pypi_project": "aiohttp"
@@ -15,6 +16,7 @@
     "repo": "https://github.com/bottlepy/bottle",
     "git": "https://github.com/bottlepy/bottle.git",
     "github_repo": "bottlepy/bottle",
+    "github_topic": "bottle",
     "stackoverflow_tag": "bottle",
     "pypistat_project": "bottle",
     "pypi_project": "bottle"
@@ -25,6 +27,7 @@
     "repo": "https://github.com/cherrypy/cherrypy",
     "git": "https://github.com/cherrypy/cherrypy.git",
     "github_repo": "cherrypy/cherrypy",
+    "github_topic": "cherrypy",
     "stackoverflow_tag": "cherrypy",
     "pypistat_project": "cherrypy",
     "pypi_project": "cherrypy"
@@ -35,6 +38,7 @@
     "repo": "https://forge.extranet.logilab.fr/cubicweb/cubicweb",
     "git": null,
     "github_repo": null,
+    "github_topic": null,
     "stackoverflow_tag": null,
     "pypistat_project": "cubicweb",
     "pypi_project": "cubicweb"
@@ -45,6 +49,7 @@
     "repo": "https://github.com/plotly/dash",
     "git": "https://github.com/plotly/dash.git",
     "github_repo": "plotly/dash",
+    "github_topic": "plotly-dash",
     "stackoverflow_tag": "plotly-dash",
     "pypistat_project": "dash",
     "pypi_project": "dash"
@@ -55,6 +60,7 @@
     "repo": "https://github.com/django/django",
     "git": "https://github.com/django/django.git",
     "github_repo": "django/django",
+    "github_topic": "django",
     "stackoverflow_tag": "django",
     "pypistat_project": "django",
     "pypi_project": "django"
@@ -65,6 +71,7 @@
     "repo": "https://github.com/emmett-framework/emmett",
     "git": "https://github.com/emmett-framework/emmett.git",
     "github_repo": "emmett-framework/emmett",
+    "github_topic": "emmett",
     "stackoverflow_tag": null,
     "pypistat_project": "emmett",
     "pypi_project": "emmett"
@@ -75,6 +82,7 @@
     "repo": "https://github.com/falconry/falcon",
     "git": "https://github.com/falconry/falcon.git",
     "github_repo": "falconry/falcon",
+    "github_topic": "falcon",
     "stackoverflow_tag": "falconframework",
     "pypistat_project": "falcon",
     "pypi_project": "falcon"
@@ -85,6 +93,7 @@
     "repo": "https://github.com/tiangolo/fastapi",
     "git": "https://github.com/tiangolo/fastapi.git",
     "github_repo": "tiangolo/fastapi",
+    "github_topic": "fastapi",
     "stackoverflow_tag": "fastapi",
     "pypistat_project": "fastapi",
     "pypi_project": "fastapi"
@@ -95,6 +104,7 @@
     "repo": "https://github.com/pallets/flask",
     "git": "https://github.com/pallets/flask.git",
     "github_repo": "pallets/flask",
+    "github_topic": "flask",
     "stackoverflow_tag": "flask",
     "pypistat_project": "flask",
     "pypi_project": "flask"
@@ -105,6 +115,7 @@
     "repo": "https://github.com/priestc/giotto",
     "git": "https://github.com/priestc/giotto.git",
     "github_repo": "priestc/giotto",
+    "github_topic": null,
     "stackoverflow_tag": null,
     "pypistat_project": "giotto",
     "pypi_project": "giotto"
@@ -115,6 +126,7 @@
     "repo": "https://github.com/zopefoundation/grok",
     "git": "https://github.com/zopefoundation/grok.git",
     "github_repo": "zopefoundation/grok",
+    "github_topic": "grok",
     "stackoverflow_tag": "grok",
     "pypistat_project": "grok",
     "pypi_project": "grok"
@@ -125,6 +137,7 @@
     "repo": "https://github.com/pyGrowler/Growler",
     "git": "https://github.com/pyGrowler/Growler.git",
     "github_repo": "pyGrowler/Growler",
+    "github_topic": null,
     "stackoverflow_tag": null,
     "pypistat_project": "growler",
     "pypi_project": "growler"
@@ -135,6 +148,7 @@
     "repo": "https://github.com/hugapi/hug",
     "git": "https://github.com/hugapi/hug.git",
     "github_repo": "hugapi/hug",
+    "github_topic": "hug",
     "stackoverflow_tag": "hug",
     "pypistat_project": "hug",
     "pypi_project": "hug"
@@ -145,6 +159,7 @@
     "repo": "https://github.com/morepath/morepath",
     "git": "https://github.com/morepath/morepath.git",
     "github_repo": "morepath/morepath",
+    "github_topic": "morepath",
     "stackoverflow_tag": null,
     "pypistat_project": "morepath",
     "pypi_project": "morepath"
@@ -155,6 +170,7 @@
     "repo": "https://github.com/nullism/pycnic",
     "git": "https://github.com/nullism/pycnic.git",
     "github_repo": "nullism/pycnic",
+    "github_topic": null,
     "stackoverflow_tag": null,
     "pypistat_project": "pycnic",
     "pypi_project": "pycnic"
@@ -165,6 +181,7 @@
     "repo": "https://github.com/Pylons/pylons",
     "git": "https://github.com/Pylons/pylons.git",
     "github_repo": "Pylons/pylons",
+    "github_topic": "pylons",
     "stackoverflow_tag": "pylons",
     "pypistat_project": "pylons",
     "pypi_project": "pylons"
@@ -175,6 +192,7 @@
     "repo": "https://github.com/Pylons/pyramid",
     "git": "https://github.com/Pylons/pyramid.git",
     "github_repo": "Pylons/pyramid",
+    "github_topic": "pyramid",
     "stackoverflow_tag": "pyramid",
     "pypistat_project": "pyramid",
     "pypi_project": "pyramid"
@@ -185,6 +203,7 @@
     "repo": "https://gitlab.com/pgjones/quart",
     "git": "https://gitlab.com/pgjones/quart.git",
     "github_repo": "pgjones/quart",
+    "github_topic": "quart",
     "stackoverflow_tag": "quart",
     "pypistat_project": "quart",
     "pypi_project": "quart"
@@ -195,6 +214,7 @@
     "repo": "https://github.com/nascheme/quixote",
     "git": "https://github.com/nascheme/quixote.git",
     "github_repo": "nascheme/quixote",
+    "github_topic": null,
     "stackoverflow_tag": null,
     "pypistat_project": "quixote",
     "pypi_project": "quixote"
@@ -205,6 +225,7 @@
     "repo": "https://github.com/sanic-org/sanic",
     "git": "https://github.com/sanic-org/sanic.git",
     "github_repo": "sanic-org/sanic",
+    "github_topic": "sanic",
     "stackoverflow_tag": "sanic",
     "pypistat_project": "sanic",
     "pypi_project": "sanic"
@@ -215,6 +236,7 @@
     "repo": "https://github.com/encode/starlette",
     "git": "https://github.com/encode/starlette.git",
     "github_repo": "encode/starlette",
+    "github_topic": "starlette",
     "stackoverflow_tag": "starlette",
     "pypistat_project": "starlette",
     "pypi_project": "starlette"
@@ -225,6 +247,7 @@
     "repo": "https://github.com/tornadoweb/tornado",
     "git": "https://github.com/tornadoweb/tornado.git",
     "github_repo": "tornadoweb/tornado",
+    "github_topic": "tornado",
     "stackoverflow_tag": "tornado",
     "pypistat_project": "tornado",
     "pypi_project": "tornado"
@@ -235,6 +258,7 @@
     "repo": "https://github.com/TurboGears/tg2",
     "git": "https://github.com/TurboGears/tg2.git",
     "github_repo": "TurboGears/tg2",
+    "github_topic": "turbogears2",
     "stackoverflow_tag": "turbogears2",
     "pypistat_project": "turbogears2",
     "pypi_project": "turbogears"
@@ -245,6 +269,7 @@
     "repo": "https://github.com/twisted/twisted",
     "git": "https://github.com/twisted/twisted.git",
     "github_repo": "twisted/twisted",
+    "github_topic": "twisted",
     "stackoverflow_tag": "twisted",
     "pypistat_project": "twisted",
     "pypi_project": "twisted"
@@ -255,6 +280,7 @@
     "repo": "https://github.com/vibora-io/vibora",
     "git": "https://github.com/vibora-io/vibora.git",
     "github_repo": "vibora-io/vibora",
+    "github_topic": "vibora",
     "stackoverflow_tag": null,
     "pypistat_project": "vibora",
     "pypi_project": "vibora"
@@ -265,6 +291,7 @@
     "repo": "https://github.com/webpy/webpy",
     "git": "https://github.com/webpy/webpy.git",
     "github_repo": "webpy/webpy",
+    "github_topic": "webpy",
     "stackoverflow_tag": "web.py",
     "pypistat_project": "web.py",
     "pypi_project": "web.py"
@@ -275,6 +302,7 @@
     "repo": "https://github.com/web2py/web2py",
     "git": "https://github.com/web2py/web2py.git",
     "github_repo": "web2py/web2py",
+    "github_topic": "web2py",
     "stackoverflow_tag": "web2py",
     "pypistat_project": "web2py",
     "pypi_project": "web2py"
@@ -285,6 +313,7 @@
     "repo": "https://github.com/pallets/werkzeug",
     "git": "https://github.com/pallets/werkzeug.git",
     "github_repo": "pallets/werkzeug",
+    "github_topic": "werkzeug",
     "stackoverflow_tag": "werkzeug",
     "pypistat_project": "werkzeug",
     "pypi_project": "werkzeug"
@@ -295,6 +324,7 @@
     "repo": "https://github.com/zopefoundation/Zope",
     "git": "https://github.com/zopefoundation/Zope.git",
     "github_repo": "zopefoundation/Zope",
+    "github_topic": "zope",
     "stackoverflow_tag": "zope",
     "pypistat_project": "zope",
     "pypi_project": "zope"
