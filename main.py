@@ -50,8 +50,8 @@ GITHUB_SIZE = "-github_size"
 GITHUB_CREATED_AT = "-github_first_commit"
 GITHUB_UPDATED_AT = "-github_last_commit"
 
-GITHUB_TOPICS_ALL = "+github_topics_all"
-GITHUB_TOPICS_LANGUAGE = "+github_topics_language"
+GITHUB_TOPICS_ALL = "-github_topics_all"
+GITHUB_TOPICS_LANGUAGE = "-github_topics_language"
 
 STACKOVERFLOW_QUESTIONS = "+stackoverflow_questions"
 
