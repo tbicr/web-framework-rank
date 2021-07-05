@@ -165,6 +165,17 @@
     "pypi_project": "morepath"
   },
   {
+    "name": "py4web",
+    "language": "python",
+    "repo": "https://github.com/web2py/py4web",
+    "git": "https://github.com/web2py/py4web.git",
+    "github_repo": "web2py/py4web",
+    "github_topic": "py4web",
+    "stackoverflow_tag": null,
+    "pypistat_project": "py4web",
+    "pypi_project": "py4web"
+  },
+  {
     "name": "Pycnic",
     "language": "python",
     "repo": "https://github.com/nullism/pycnic",
