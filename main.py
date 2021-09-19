@@ -250,7 +250,7 @@ def retry(func):
     return wrapper
 
 
-def _commit_datetime(commit: git.Commit) -> datetime:
+def _commit_datetime(commit: git.objects.commit.Commit) -> datetime:
     return commit.committed_datetime.astimezone(UTC).replace(tzinfo=None)
 
 
