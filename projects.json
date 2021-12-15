@@ -209,6 +209,7 @@
     "pypi_project": "pyramid"
   },
   {
+  {
     "name": "Quart",
     "language": "python",
     "repo": "https://gitlab.com/pgjones/quart",
@@ -229,6 +230,17 @@
     "stackoverflow_tag": null,
     "pypistat_project": "quixote",
     "pypi_project": "quixote"
+  },
+  {
+    "name": "Robyn",
+    "language": "python",
+    "repo": "https://github.com/sansyrox/robyn",
+    "git": "https://github.com/sansyrox/robyn.git",
+    "github_repo": "sansyrox/robyn",
+    "github_topic": null,
+    "stackoverflow_tag": null,
+    "pypistat_project": "robyn",
+    "pypi_project": "robyn"
   },
   {
     "name": "Sanic",
