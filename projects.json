@@ -209,7 +209,6 @@
     "pypi_project": "pyramid"
   },
   {
-  {
     "name": "Quart",
     "language": "python",
     "repo": "https://gitlab.com/pgjones/quart",
