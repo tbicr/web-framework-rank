@@ -211,9 +211,9 @@
   {
     "name": "Quart",
     "language": "python",
-    "repo": "https://gitlab.com/pgjones/quart",
-    "git": "https://gitlab.com/pgjones/quart.git",
-    "github_repo": "pgjones/quart",
+    "repo": "https://github.com/pallets/quart",
+    "git": "https://github.com/pallets/quart.git",
+    "github_repo": "pallets/quart",
     "github_topic": "quart",
     "stackoverflow_tag": "quart",
     "pypistat_project": "quart",
