@@ -520,8 +520,8 @@ def get_and_update_dependencies(
 def get_deep_dependencies(
         data: Dict[str, List[str]],
         package: str,
-        extra_options: List[str] = None,
-        cache: Set[str] = None,
+        extra_options: Optional[List[str]] = None,
+        cache: Optional[Set[str]] = None,
 ) -> Set[str]:
     all_extras = False
     extra_options = extra_options or []
