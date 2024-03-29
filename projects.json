@@ -154,6 +154,17 @@
     "pypi_project": "hug"
   },
   {
+    "name": "Litestar",
+    "language": "python",
+    "repo": "https://github.com/litestar-org/litestar",
+    "git": "https://github.com/litestar-org/litestar.git",
+    "github_repo": "litestar-org/litestar",
+    "github_topic": "litestar",
+    "stackoverflow_tag": "litestar",
+    "pypistat_project": "litestar",
+    "pypi_project": "litestar"
+  },
+  {
     "name": "Morepath",
     "language": "python",
     "repo": "https://github.com/morepath/morepath",
