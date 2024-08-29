@@ -99,6 +99,17 @@
     "pypi_project": "fastapi"
   },
   {
+    "name": "fasthtml",
+    "language": "python",
+    "repo": "https://github.com/AnswerDotAI/fasthtml",
+    "git": "https://github.com/AnswerDotAI/fasthtml.git",
+    "github_repo": "AnswerDotAI/fasthtml",
+    "github_topic": null,
+    "stackoverflow_tag": "fasthtml",
+    "pypistat_project": "python-fasthtml",
+    "pypi_project": "python-fasthtml"
+  },
+  {
     "name": "Flask",
     "language": "python",
     "repo": "https://github.com/pallets/flask",
