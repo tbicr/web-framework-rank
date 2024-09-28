@@ -253,6 +253,17 @@
     "pypi_project": "quixote"
   },
   {
+    "name": "Rio",
+    "language": "python",
+    "repo": "https://github.com/rio-labs/rio",
+    "git": "https://github.com/rio-labs/rio.git",
+    "github_repo": "rio-labs/rio",
+    "github_topic": null,
+    "stackoverflow_tag": null,
+    "pypistat_project": "rio-ui",
+    "pypi_project": "rio-ui"
+  },
+  {
     "name": "Robyn",
     "language": "python",
     "repo": "https://github.com/sansyrox/robyn",
